@@ -1,28 +1,35 @@
-from skimage import transform
-from skimage.color import rgb2gray
-from skimage import io
+import gym
+import cv2
 
-
-# def pre_process(frame):
-#     gray_frame = rgb2gray(frame)
-#     # cropped_frame = gray_frame[8:-12, 4:-12]
-#     # normalised_frame = cropped_frame / 255.0
-#     # perfect_frame = transform.resize(normalised_frame, [110, 84])
-#     return gray_frame
-def pre_process(frame):
+def preprocess_frame(frame):
     # Greyscale frame
-    gray = rgb2gray(frame)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Crop the screen (remove the part below the player)
-    # [Up: Down, Left: right]
     cropped_frame = gray[8:-12, 4:-12]
 
     # Normalize Pixel Values
-    normalized_frame = cropped_frame / 255.0
+    normalized_frame = cropped_frame / 255
 
     # Resize
-    # Thanks to Mikołaj Walkowiak
-    preprocessed_frame = transform.resize(normalized_frame, [110, 84])
+    preprocessed_frame = cv2.resize(normalized_frame, (110, 84))
+    return preprocessed_frame  # 110x84x1 frame
 
-    io.imshow(preprocessed_frame)
-    io.show()
+
+import cv2
+
+env = gym.make('SpaceInvaders-v0')
+env.reset()
+for i in range(3000):
+    observation, reward, done, info = env.step(env.action_space.sample())
+    cv2.imshow('test', observation)
+    if i == 100:
+        obs1 = observation
+    env.render('human')
+env.close()
+cv2.destroyAllWindows()
+
+cv2.imshow('processed', preprocess_frame(obs1))
+
+cv2.waitKey()
+cv2.destroyAllWindows()
